@@ -83,10 +83,13 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <LinearGradient
-        colors={['#FFCCCB', '#FFB07A']}
-        style={styles.gradient}
-      >
+       <LinearGradient
+         colors={['#FFA44E', '#FFFFFF']} // light orange → white
+         start={{ x: 0, y: 0 }}
+         end={{ x: 0, y: 1 }}
+         locations={[0, 0.25]} // white starts at 25% height
+         style={styles.gradientBackground}
+       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
@@ -114,8 +117,8 @@ export default function HomeScreen() {
           <View style={styles.trackingContainer}>
             <View style={styles.trackingGrid}>
               {trackingData.map((item, index) => (
-                <TouchableOpacity 
-                  key={index} 
+                <TouchableOpacity
+                  key={index}
                   style={[styles.trackingCard, { backgroundColor: item.color }]}
                   onPress={() => {
                     if (item.title === 'Calories') {
@@ -133,9 +136,12 @@ export default function HomeScreen() {
           </View>
 
           {/* Today's Meals */}
-          <View style={styles.mealsSection}>
-            <Text style={styles.sectionTitle}>Today's meals</Text>
-            
+
+          <Text style={styles.sectionTitle}>Today's meals</Text>
+          {/*<View style={styles.mealsSection}>*/}
+          <View style={styles.mealContainer}>
+            {/*<Text style={styles.sectionTitle}>Today's meals</Text>*/}
+
             {todaysMeals.map((meal, index) => (
               <TouchableOpacity key={index} style={[styles.mealCard, { backgroundColor: meal.backgroundColor }]}>
                 <Image
@@ -206,10 +212,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   trackingContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 255)',
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 30,
+    padding: 15,
+    marginBottom: 20,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6, // Android shadow
   },
   trackingGrid: {
     flexDirection: 'row',
@@ -217,7 +229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   trackingCard: {
-    width: (width - 80) / 2,
+    width: (width - 90) / 2,
     padding: 16,
     borderRadius: 16,
     marginBottom: 16,
@@ -246,6 +258,27 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  mealContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 255)',
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 30,
+
+    // Optional: make spacing similar to the tracking container
+    marginTop: 10,
+
+    // Soft shadow (same as the tracking container)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+
+    // Optional subtle border for glow effect
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+
   mealsSection: {
     marginBottom: 120,
   },
@@ -301,5 +334,9 @@ const styles = StyleSheet.create({
   caloriesUnit: {
     fontSize: 12,
     color: '#666',
+  },
+  gradientBackground: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
 });

@@ -72,10 +72,13 @@ export default function RecipesScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <LinearGradient
-        colors={['#FFFACD', '#FFE4B5']}
-        style={styles.gradient}
-      >
+       <LinearGradient
+         colors={['#FFFF9D', '#FFFFFF']} // light orange → white
+         start={{ x: 0, y: 0 }}
+         end={{ x: 0, y: 1 }}
+         locations={[0, 0.25]} // white starts at 25% height
+         style={styles.gradientBackground}
+       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
@@ -103,13 +106,15 @@ export default function RecipesScreen() {
           </View>
 
           {/* Categories */}
-          <View style={styles.categoriesGrid}>
-            {categories.map((category, index) => (
-              <TouchableOpacity key={index} style={styles.categoryItem}>
-                <Text style={styles.categoryIcon}>{category.icon}</Text>
-                <Text style={styles.categoryName}>{category.name}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.categoriesContainer}>
+              <View style={styles.categoriesGrid}>
+                {categories.map((category, index) => (
+                  <TouchableOpacity key={index} style={styles.categoryItem}>
+                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
           </View>
 
           {/* Explore Recipes */}
@@ -124,7 +129,7 @@ export default function RecipesScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recipesScroll}>
               {exploreRecipes.map((recipe) => (
                 <TouchableOpacity 
-                  key={recipe.id} 
+                  key={recipe.id}
                   style={styles.recipeCard}
                   onPress={() => router.push(`/recipe/${recipe.id}`)}
                 >
@@ -236,6 +241,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 30,
+    // Add outline
+    borderWidth: 0.3,          // thickness of the outline
+    borderColor: '#997',  // outline color
   },
   searchIcon: {
     marginRight: 12,
@@ -245,20 +253,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+
+  categoriesContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 255)',
+    borderRadius: 20,
+    padding: 5,
+    marginBottom: 20,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3, // Android shadow
+  },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   categoryItem: {
-    width: (width - 60) / 5,
+    width: (width - 70) / 5,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   categoryIcon: {
     fontSize: 30,
-    marginBottom: 8,
+    marginBottom: 5,
   },
   categoryName: {
     fontSize: 12,
@@ -334,5 +355,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginLeft: 4,
+  },
+
+  gradientBackground: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
 });
