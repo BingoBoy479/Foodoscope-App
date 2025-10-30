@@ -25,6 +25,12 @@ export default function PersonalInfoScreen() {
     setCurrentStep(1);
   };
 
+  const handleAgeChange = (text) => {
+    // Only allow numbers
+    const numericText = text.replace(/[^0-9]/g, '');
+    updateData({ age: numericText });
+  };
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
@@ -81,7 +87,7 @@ export default function PersonalInfoScreen() {
             style={styles.input}
             placeholder="Enter your age"
             value={data.age}
-            onChangeText={(text) => updateData({ age: text })}
+            onChangeText={handleAgeChange}
             keyboardType="numeric"
             placeholderTextColor="#999"
           />
