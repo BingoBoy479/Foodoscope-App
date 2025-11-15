@@ -35,7 +35,15 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-asset",
+      "expo-audio",
+      "expo-font",
+      "expo-localization",
+      "expo-mail-composer",
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
@@ -43,7 +51,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d779d812-ae04-4f2e-bd1a-049548cd6233"
+        "projectId": "ca672140-8b0f-43b5-b6dd-2bd63120bb91"
       }
     }
   }
