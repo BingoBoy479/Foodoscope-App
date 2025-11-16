@@ -57,6 +57,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="calories" options={{ headerShown: false }} />
           <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="explore" options={{ headerShown: false }} />
         </Stack>
       </OnboardingProvider>
     </AuthProvider>

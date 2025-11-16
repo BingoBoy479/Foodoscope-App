@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,18 +7,24 @@ import {
   TouchableOpacity,
   TextInput,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import recipeService from '../services/recipes/recipeService';
+import { DisplayRecipe } from '../services/recipes/types';
 
 const { width } = Dimensions.get('window');
 
 export default function RecipesScreen() {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [exploreRecipes, setExploreRecipes] = useState<DisplayRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const categories = [
@@ -32,25 +38,6 @@ export default function RecipesScreen() {
     { name: 'Snack', icon: '🍿' },
     { name: 'Beverage', icon: '🧃' },
     { name: 'Soup', icon: '🍲' },
-  ];
-
-  const exploreRecipes = [
-    {
-      id: 1,
-      name: 'Grilled Salmon Salad & Brown Rice',
-      calories: 450,
-      rating: 4.8,
-      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=300&h=200&fit=crop',
-      liked: true,
-    },
-    {
-      id: 2,
-      name: 'Classic Masala Dosa & Sambar',
-      calories: 350,
-      rating: 4.7,
-      image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&h=200&fit=crop',
-      liked: false,
-    },
   ];
 
   const recommendedRecipes = [
@@ -70,15 +57,118 @@ export default function RecipesScreen() {
     },
   ];
 
+
+
+useEffect(() => {
+  const fetchExploreRecipes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('🔄 Starting to fetch explore recipes...');
+      
+      // Fetch 20 recipes but we'll only display first 7
+      const recipes = await recipeService.getExploreRecipes(1, 20);
+      setExploreRecipes(recipes);
+      
+      console.log(`✅ Successfully loaded ${recipes.length} recipes from API`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load recipes';
+      setError(errorMessage);
+      console.log('❌ Error fetching explore recipes:', errorMessage);
+      
+      setExploreRecipes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchExploreRecipes();
+}, []);
+
+  // Show only first 7 recipes on main screen
+  const displayedRecipes = exploreRecipes.slice(0, 7);
+
+  const renderExploreRecipes = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF6B35" />
+          <Text style={styles.loadingText}>Loading delicious recipes...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <FontAwesome name="exclamation-triangle" size={40} color="#FF6B35" />
+          <Text style={styles.errorText}>Failed to load recipes</Text>
+          <Text style={styles.errorSubtext}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => window.location.reload()}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (displayedRecipes.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <FontAwesome name="utensils" size={40} color="#CCC" />
+          <Text style={styles.emptyText}>No recipes found</Text>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recipesScroll}>
+        {displayedRecipes.map((recipe) => (
+          <TouchableOpacity 
+            key={recipe.id} 
+            style={styles.recipeCard}
+            onPress={() => router.push(`/recipe/${recipe.id}`)}
+          >
+            <View style={styles.recipeImageContainer}>
+              <Image 
+                source={recipe.image} 
+                style={styles.recipeImage}
+                contentFit="cover"
+              />
+              <TouchableOpacity style={styles.likeButton}>
+                <FontAwesome 
+                  name={recipe.liked ? 'heart' : 'heart-o'} 
+                  size={16} 
+                  color={recipe.liked ? '#FF6B35' : '#FFF'} 
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.recipeInfo}>
+              <Text style={styles.recipeName} numberOfLines={2}>
+                {recipe.name}
+              </Text>
+              <View style={styles.recipeStats}>
+                <Text style={styles.recipeCalories}>{recipe.calories} kcal</Text>
+                <View style={styles.ratingContainer}>
+                  <FontAwesome name="star" size={12} color="#FFD700" />
+                  <Text style={styles.rating}>{recipe.rating || 4.5}</Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-       <LinearGradient
-         colors={['#FFFF9D', '#FFFFFF']} // light orange → white
-         start={{ x: 0, y: 0 }}
-         end={{ x: 0, y: 1 }}
-         locations={[0, 0.25]} // white starts at 25% height
-         style={styles.gradientBackground}
-       >
+      <LinearGradient
+        colors={['#FFFACD', '#FFE4B5']}
+        style={styles.gradient}
+      >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
@@ -106,56 +196,25 @@ export default function RecipesScreen() {
           </View>
 
           {/* Categories */}
-          <View style={styles.categoriesContainer}>
-              <View style={styles.categoriesGrid}>
-                {categories.map((category, index) => (
-                  <TouchableOpacity key={index} style={styles.categoryItem}>
-                    <Text style={styles.categoryIcon}>{category.icon}</Text>
-                    <Text style={styles.categoryName}>{category.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+          <View style={styles.categoriesGrid}>
+            {categories.map((category, index) => (
+              <TouchableOpacity key={index} style={styles.categoryItem}>
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+                <Text style={styles.categoryName}>{category.name}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           {/* Explore Recipes */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Explore recipes</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/explore')}>
                 <Text style={styles.seeMore}>See More &gt;</Text>
               </TouchableOpacity>
             </View>
             
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recipesScroll}>
-              {exploreRecipes.map((recipe) => (
-                <TouchableOpacity 
-                  key={recipe.id}
-                  style={styles.recipeCard}
-                  onPress={() => router.push(`/recipe/${recipe.id}`)}
-                >
-                  <View style={styles.recipeImageContainer}>
-                    <Image source={recipe.image} style={styles.recipeImage} />
-                    <TouchableOpacity style={styles.likeButton}>
-                      <FontAwesome 
-                        name={recipe.liked ? 'heart' : 'heart-o'} 
-                        size={16} 
-                        color={recipe.liked ? '#FF6B35' : '#FFF'} 
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.recipeInfo}>
-                    <Text style={styles.recipeName} numberOfLines={2}>{recipe.name}</Text>
-                    <View style={styles.recipeStats}>
-                      <Text style={styles.recipeCalories}>{recipe.calories} kcal</Text>
-                      <View style={styles.ratingContainer}>
-                        <FontAwesome name="star" size={12} color="#FFD700" />
-                        <Text style={styles.rating}>{recipe.rating}</Text>
-                      </View>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            {renderExploreRecipes()}
           </View>
 
           {/* Recommended */}
@@ -241,9 +300,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 30,
-    // Add outline
-    borderWidth: 0.3,          // thickness of the outline
-    borderColor: '#997',  // outline color
   },
   searchIcon: {
     marginRight: 12,
@@ -253,33 +309,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-
-  categoriesContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 255)',
-    borderRadius: 20,
-    padding: 5,
-    marginBottom: 20,
-
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3, // Android shadow
-  },
   categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  categoryItem: {
-    width: (width - 70) / 5,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-evenly',
+  marginBottom: 30,
+},
+categoryItem: {
+  width: (width - 60) / 5, 
+  alignItems: 'center',
+  marginBottom: 20,
+},
   categoryIcon: {
     fontSize: 30,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   categoryName: {
     fontSize: 12,
@@ -356,9 +399,53 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 4,
   },
-
-  gradientBackground: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+  loadingContainer: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
+  errorContainer: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 12,
   },
 });
